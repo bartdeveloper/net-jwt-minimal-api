@@ -3,6 +3,7 @@ using JWT_Minimal_API.Models;
 using JWT_Minimal_API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,14 @@ builder.Services.AddSwaggerWithJWTAuth();
 
 builder.Services.AddScoped<IUserService, UserService>();
 
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
 var app = builder.Build();
+
+Log.Information("JWT Minimal API started...");
 
 if (app.Environment.IsDevelopment())
 {
@@ -25,7 +33,7 @@ app.UseAuthorization();
 app.UseAuthentication();
 app.UseHttpsRedirection();
 
-app.MapGet("/", [AllowAnonymous] () => "Hello World!")
+app.MapGet("/", [AllowAnonymous] () => "Hello in JWT .NET6 Minimal API!")
     .ExcludeFromDescription();
 
 app.MapPost("/login", [AllowAnonymous]
@@ -39,6 +47,8 @@ app.MapGet("/user", [Authorize(AuthenticationSchemes = JwtBearerDefaults.Authent
 
 IResult Login(UserLogin user, IUserService service)
 {
+
+    Log.Information($"Attempt login for user {user.Username}");
 
     if (!string.IsNullOrEmpty(user.Username) && !string.IsNullOrEmpty(user.Password))
     {
@@ -59,6 +69,8 @@ IResult Login(UserLogin user, IUserService service)
 
 IResult GetUserClaims(HttpContext httpContext, IUserService service)
 {
+
+    Log.Information($"Getting user claims");
 
     var userInfo = service.GetUserClaims(httpContext);
    
