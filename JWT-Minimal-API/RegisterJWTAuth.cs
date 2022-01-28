@@ -33,6 +33,7 @@ namespace JWT_Minimal_API
             services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "JWT .NET6 Minimal API Docs", Version = "v1" });
+
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Scheme = "Bearer",
