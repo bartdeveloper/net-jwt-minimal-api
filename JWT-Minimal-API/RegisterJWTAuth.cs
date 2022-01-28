@@ -32,15 +32,15 @@ namespace JWT_Minimal_API
 
             services.AddSwaggerGen(options =>
             {
-
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "JWT .NET6 Minimal API Docs", Version = "v1" });
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
                     Name = "Authorization",
-                    Description = "Bearer Authentication with JWT Token",
-                    Type = SecuritySchemeType.Http
+                    Description = "Bearer Authentication with JWT Token"                   
                 });
 
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
