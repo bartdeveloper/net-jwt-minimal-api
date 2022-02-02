@@ -9,7 +9,13 @@ using Swashbuckle.AspNetCore.Swagger;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthenticationWithJWT(builder.Configuration);
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+        .Build();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerWithJWTAuth();
 
@@ -37,17 +43,17 @@ app.UseAuthorization();
 app.UseAuthentication();
 app.UseHttpsRedirection();
 
-app.MapGet("/", [AllowAnonymous] () => "Hello in JWT .NET6 Minimal API!")
+app.MapGet("/", () => "Hello in JWT .NET6 Minimal API!")
     .ExcludeFromDescription();
+
+app.MapGet("/user",
+(HttpContext httpContext, IUserService service) => GetUserClaims(httpContext, service))
+    .Produces<User>(statusCode: 200, contentType: "application/json");
 
 app.MapPost("/login", [AllowAnonymous]
 (UserLogin user, IUserService service) => Login(user, service))
     .Accepts<UserLogin>("application/json")
     .Produces<string>(statusCode: 200, contentType: "application/json");
-
-app.MapGet("/user", [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-(HttpContext httpContext, IUserService service) => GetUserClaims(httpContext, service))
-    .Produces<User>(statusCode: 200, contentType: "application/json");
 
 IResult Login(UserLogin user, IUserService service)
 {
