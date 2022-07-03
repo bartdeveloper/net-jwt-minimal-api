@@ -1,10 +1,11 @@
+using HealthChecks.UI.Client;
 using JWT_Minimal_API;
 using JWT_Minimal_API.Models;
 using JWT_Minimal_API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
-using Swashbuckle.AspNetCore.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,8 +17,11 @@ builder.Services.AddAuthorization(options =>
         .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
         .Build();
 });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerWithJWTAuth();
+builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecksUI().AddInMemoryStorage();
 
 builder.Services.AddScoped<IUserService, UserService>();
 
@@ -42,6 +46,14 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 app.UseAuthentication();
 app.UseHttpsRedirection();
+
+app.MapHealthChecks("/health", new HealthCheckOptions()
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+}).WithMetadata(new AllowAnonymousAttribute());
+
+app.MapHealthChecksUI().WithMetadata(new AllowAnonymousAttribute());
 
 app.MapGet("/", () => "Hello in JWT .NET6 Minimal API!")
     .ExcludeFromDescription();
